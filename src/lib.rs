@@ -1,5 +1,5 @@
 mod sort;
-
+mod util;
 #[cfg(test)]
 mod tests {
     #[test]
