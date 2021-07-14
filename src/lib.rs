@@ -1,5 +1,7 @@
 mod sort;
 mod util;
+mod structures;
+
 #[cfg(test)]
 mod tests {
     #[test]
