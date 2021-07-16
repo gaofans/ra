@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 pub fn parse_array<T:Copy>(data:&[Vec<Option<T>>]) -> Result<Vec<Metadata<T>>, Error>{
     if data.len() == 0 {
         return Err(Error(String::from("数组高度不得为0")))
@@ -9,7 +11,7 @@ pub fn parse_array<T:Copy>(data:&[Vec<Option<T>>]) -> Result<Vec<Metadata<T>>, E
         }
     }
     let mut res = Vec::with_capacity(size+1);
-    res.push(Metadata::Head {x:data.len(),y:data.get(0).unwrap().len(),size});
+    res.push(Metadata::Head {y:data.len(),x:data.get(0).unwrap().len(),size});
     let width = data[0].len();
     for y in 0..data.len() {
         if data[y].len() != width {
@@ -26,14 +28,13 @@ pub fn parse_array<T:Copy>(data:&[Vec<Option<T>>]) -> Result<Vec<Metadata<T>>, E
 
 pub fn reset<T:Copy>(res:&Vec<Metadata<T>>) -> Result<Vec<Vec<Option<T>>>,Error>{
     if let Metadata::Head{x,y,size} = res.get(0).unwrap(){
-        let mut data:Vec<Vec<Option<T>>>= vec![vec![Option::None;*y];*x];
+        let mut data:Vec<Vec<Option<T>>> = vec![vec![Option::None;*x];*y];
         for i in 1..res.len() {
             match res.get(i).unwrap() {
-                _ => (),
                 Metadata::Info(info) => {
-                    let mut node = data.get_mut(info.y).unwrap().get_mut(info.x).unwrap();
-                    node = &mut Some(info.value);
-                }
+                    data[info.y][info.x] = Some(info.value);
+                },
+                _ => ()
             }
         }
         return Ok(data);
