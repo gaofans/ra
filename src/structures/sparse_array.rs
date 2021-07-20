@@ -1,6 +1,7 @@
 use std::fmt::Debug;
+use serde::{Serialize,Deserialize};
 
-pub fn parse_array<T:Copy>(data:&[Vec<Option<T>>]) -> Result<Vec<Metadata<T>>, Error>{
+pub fn parse_array<T:Copy+Serialize>(data:&[Vec<Option<T>>]) -> Result<Vec<Metadata<T>>, Error>{
     if data.len() == 0 {
         return Err(Error(String::from("数组高度不得为0")))
     }
@@ -26,7 +27,7 @@ pub fn parse_array<T:Copy>(data:&[Vec<Option<T>>]) -> Result<Vec<Metadata<T>>, E
     Ok(res)
 }
 
-pub fn reset<T:Copy>(res:&Vec<Metadata<T>>) -> Result<Vec<Vec<Option<T>>>,Error>{
+pub fn reset<T:Copy+Serialize>(res:&Vec<Metadata<T>>) -> Result<Vec<Vec<Option<T>>>,Error>{
     if let Metadata::Head{x,y,size} = res.get(0).unwrap(){
         let mut data:Vec<Vec<Option<T>>> = vec![vec![Option::None;*x];*y];
         for i in 1..res.len() {
@@ -42,8 +43,8 @@ pub fn reset<T:Copy>(res:&Vec<Metadata<T>>) -> Result<Vec<Vec<Option<T>>>,Error>
     Err(Error(String::from("数据不正确")))
 }
 
-#[derive(Debug)]
-pub enum Metadata<T:Copy>{
+#[derive(Debug,Serialize,Deserialize)]
+pub enum Metadata<T:Copy+Serialize>{
     Head{
         x:usize,
         y:usize,
@@ -52,20 +53,29 @@ pub enum Metadata<T:Copy>{
     Info(ArrInfo<T>)
 }
 
-#[derive(Debug)]
-pub struct ArrInfo<T:Copy>{
+#[derive(Debug,Serialize,Deserialize)]
+pub struct ArrInfo<T:Copy+Serialize>{
     x:usize,
     y:usize,
     value:T
 }
-impl <T:Copy> ArrInfo<T>{
+impl <T:Copy+Serialize> ArrInfo<T>{
     fn new(x:usize,y:usize,value:T) -> ArrInfo<T>{
         ArrInfo{x,y,value}
     }
 }
 #[derive(Debug)]
 pub struct Error(String);
+use std::fs::File;
+use serde::de::DeserializeOwned;
 
+pub fn serialize<T:Copy+Serialize>(file:File,res:&Vec<Metadata<T>>) {
+    serde_json::to_writer(file,res).unwrap();
+}
+
+pub fn deserialize<T: DeserializeOwned>(file:File) -> T{
+    return serde_json::from_reader(file).unwrap();
+}
 
 #[cfg(test)]
 mod test{
@@ -77,8 +87,13 @@ mod test{
         let row2 = vec![None,None,Some(14),None,Some(18),None,None];
         let row3 = vec![None,Some(17),None,Some(56),None,Some(4),None];
         let data = [row1,row2,row3];
+        //压缩
         let res = parse_array(&data).unwrap();
-        println!("{:?}",parse_array(&data).unwrap());
-        println!("{:?}",reset(&res).unwrap());
+        //序列化到文件
+        serialize(File::create("test.txt").unwrap(),&res);
+        //反序列化
+        let aaa:Vec<Metadata<i32>> = deserialize(File::open("test.txt").unwrap());
+        //解压
+        println!("{:?}",reset(&aaa).unwrap());
     }
 }
