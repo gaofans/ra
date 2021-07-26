@@ -7,7 +7,7 @@ pub fn parse_array<T:Copy+Serialize>(data:&[Vec<Option<T>>]) -> Result<Vec<Metad
     }
     let mut size = 0;
     for y in data {
-        for x in y {
+        for _ in y {
             size += 1;
         }
     }
@@ -28,7 +28,7 @@ pub fn parse_array<T:Copy+Serialize>(data:&[Vec<Option<T>>]) -> Result<Vec<Metad
 }
 
 pub fn reset<T:Copy+Serialize>(res:&Vec<Metadata<T>>) -> Result<Vec<Vec<Option<T>>>,Error>{
-    if let Metadata::Head{x,y,size} = res.get(0).unwrap(){
+    if let Metadata::Head{x,y,size:_} = res.get(0).unwrap(){
         let mut data:Vec<Vec<Option<T>>> = vec![vec![Option::None;*x];*y];
         for i in 1..res.len() {
             match res.get(i).unwrap() {

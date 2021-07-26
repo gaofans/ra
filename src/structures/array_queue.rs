@@ -44,6 +44,7 @@ mod test{
     use super::*;
 
     #[test]
+
     fn test() {
         let mut queue:ArrayQueue<i32> = ArrayQueue::new(10);
         for i in 0..11 {
@@ -53,7 +54,7 @@ mod test{
             }
         }
         println!("{}",queue);
-        for i in 0..5 {
+        for _ in 0..5 {
             println!("{:?}",queue.take());
         }
         println!("{}",queue);
@@ -61,7 +62,7 @@ mod test{
             queue.add(i);
         }
         println!("{}",queue);
-        for i in 0..11 {
+        for _ in 0..11 {
             println!("{:?}",queue.take());
         }
         println!("{}",queue);
