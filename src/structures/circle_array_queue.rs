@@ -20,11 +20,11 @@ impl <T:Copy> Queue<T>{
     }
 
     pub fn size(&self) -> usize{
-        let offset = self.tail - self.head;
-        if offset >= 0 {
-            offset
-        }else{
-            offset + self.max_size + 1
+        let offset = self.tail as isize - self.head as isize;
+        return if offset >= 0 {
+            offset as usize
+        } else {
+            return (offset + (self.max_size + 1) as isize) as usize;
         }
     }
 
@@ -66,18 +66,35 @@ mod test{
             }
 
         }
-        for i in 0..3 {
+        for _ in 0..3 {
             match q.take() {
                 Err(s) => println!("{}",s),
                 Ok(t) => println!("{}",t)
             }
         }
-        for i in 0..5 {
+        for i in 11..16 {
             match q.add(i) {
                 Err(s) => println!("{}",s),
                 _ => println!("{:?}",q)
             }
         }
-
+        for _ in 0..8 {
+            match q.take() {
+                Err(s) => println!("{}",s),
+                Ok(t) => println!("{}",t)
+            }
+        }
+        for i in 16..24 {
+            match q.add(i) {
+                Err(s) => println!("{}",s),
+                _ => println!("{:?}",q)
+            }
+        }
+        for _ in 0..12 {
+            match q.take() {
+                Err(s) => println!("{}",s),
+                Ok(t) => println!("{}",t)
+            }
+        }
     }
 }
