@@ -1,5 +1,3 @@
-use std::mem::take;
-
 #[derive(Debug)]
 pub struct Queue<T:Copy>{
     head:usize,

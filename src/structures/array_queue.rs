@@ -44,7 +44,7 @@ mod test{
     use super::*;
 
     #[test]
-
+    #[allow(unused)]
     fn test() {
         let mut queue:ArrayQueue<i32> = ArrayQueue::new(10);
         for i in 0..11 {
