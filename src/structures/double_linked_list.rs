@@ -3,6 +3,7 @@ use std::cell::{RefCell};
 use std::mem;
 use std::option::Option::{None, Some};
 use std::fmt::{Display, Formatter, Debug};
+use std::borrow::Borrow;
 
 #[derive(Debug,Default)]
 struct Node<E>{
@@ -69,21 +70,14 @@ impl <E> LinkedList<E> where E:Default{
         if self.size == 0 || index >= self.size{
             return None;
         }
-        let mut temp = &self.start;
         let mut count = 0;
-        while let Some(node) = temp {
+        for value in self.iter() {
             if count == index {
-                break;
-            }
-            unsafe {
-                temp = &(*node.as_ptr()).next;
+                return Some(value);
             }
             count += 1;
         }
-        unsafe {
-            let x = temp.as_ref().unwrap().as_ptr();
-            return Some(&(*x).value);
-        }
+        None
     }
 
     pub fn remove(&mut self,index:usize) -> Option<E>{
@@ -123,20 +117,34 @@ impl <E> LinkedList<E> where E:Default{
         }
         return Some(node.value);
     }
+
+    pub fn iter(&self) -> Iter<E>{
+        Iter{next:self.start.as_ref()}
+    }
 }
 
-impl <T> Display for LinkedList<T> where T:Display {
+impl <T> Display for LinkedList<T> where T:Display+Default {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut result = Vec::with_capacity(self.size);
-        let mut temp = &self.start;
-        while let Some(node) = temp {
-
-            unsafe {
-                result.push(format!("{}",&(*node.as_ptr()).value));
-                temp  = &(*node.as_ptr()).next
-            }
-        };
+        self.iter().for_each(|value|{
+            result.push(format!("{}",value));
+        });
         write!(f, "{:?}", result)
+    }
+}
+pub struct Iter<'a,T>{
+    next:Option<&'a Rc<RefCell<Node<T>>>>
+}
+impl <'a,T> Iterator for Iter<'a,T>{
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next.map(|node|{
+            unsafe {
+                self.next = (*(node.as_ptr())).next.as_ref();
+                (*(node.as_ptr())).value.borrow()
+            }
+        })
     }
 }
 #[allow(unused_must_use)]
@@ -185,7 +193,7 @@ mod test{
         linked_list.add_first(8);
         linked_list.add_first(9);
         linked_list.add_first(10);
-        assert_eq!(2,*linked_list.get(1).unwrap())
+        assert_eq!(9,*linked_list.get(1).unwrap())
     }
     #[test]
     fn test_remove() {
