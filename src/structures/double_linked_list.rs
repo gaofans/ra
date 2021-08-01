@@ -2,7 +2,7 @@ use std::rc::{Rc, Weak};
 use std::cell::{RefCell};
 use std::mem;
 use std::option::Option::{None, Some};
-use std::fmt::{Display, Formatter};
+use std::fmt::{Display, Formatter, Debug};
 
 #[derive(Debug,Default)]
 struct Node<E>{
@@ -139,6 +139,16 @@ impl <T> Display for LinkedList<T> where T:Display {
         write!(f, "{:?}", result)
     }
 }
+#[allow(unused_must_use)]
+impl <T> Drop for LinkedList<T>  {
+    fn drop(&mut self) {
+        let mut temp = mem::replace(&mut self.start,None);
+        while let Some(node) = temp{
+            temp = mem::replace(&mut node.as_ref().borrow_mut().next,None);
+        }
+        mem::replace(&mut self.end,None);
+    }
+}
 
 #[cfg(test)]
 mod test{
@@ -191,5 +201,20 @@ mod test{
         linked_list.add_first(9);
         linked_list.add_first(10);
         assert_eq!(2,linked_list.remove(1).unwrap())
+    }
+    #[test]
+    fn test_drop() {
+        let mut linked_list = LinkedList::new();
+        linked_list.add_last(1);
+        linked_list.add_last(2);
+        linked_list.add_last(3);
+        linked_list.add_last(4);
+        linked_list.add_last(5);
+        linked_list.add_first(6);
+        linked_list.add_first(7);
+        linked_list.add_first(8);
+        linked_list.add_first(9);
+        linked_list.add_first(10);
+        mem::drop(linked_list);
     }
 }
